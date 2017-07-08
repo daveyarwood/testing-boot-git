@@ -1,21 +1,19 @@
 (set-env!
   :dependencies '[[org.clojure/clojure "1.8.0"]
                   [adzerk/env "0.4.0"]
-                  [clj-jgit "0.8.9"]
 
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop "1.7.25"]])
 
-(def ^:const +version+ "0.0.3")
+(def ^:const +version+ "0.0.4")
 
-(require '[clj-jgit.porcelain :as jgit]
-         '[clojure.set        :as set]
-         '[boot.util          :refer (dosh)])
+(require '[boot.util          :refer (dosh)]
+         '[clojure.java.shell :as sh]
+         '[clojure.set        :as set])
 
 (defn repo-clean?
   []
-  (jgit/with-repo "."
-    (->> repo jgit/git-status vals (apply set/union) empty?)))
+  (-> (sh/sh "git" "status" "--porcelain") :out empty?))
 
 (defn create-tag
   "Create a tag in the local repo."
