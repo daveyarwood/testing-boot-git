@@ -6,10 +6,10 @@
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop "1.7.25"]])
 
-(def ^:const +version+ "0.0.5")
+(def ^:const +version+ "0.0.13")
 
 (require '[adzerk.env         :as    env]
-         '[boot.util          :refer (dosh)]
+         '[boot.util          :refer (dosh info)]
          '[clojure.java.shell :as    sh]
          '[clojure.set        :as    set]
          '[clojure.string     :as    str]
@@ -24,11 +24,13 @@
 (defn create-tag
   "Create a tag in the local repo."
   [name message]
+  (info "Creating tag %s...\n" name)
   (dosh "git" "tag" "-a" name "-m" message))
 
 (defn push-tags
   "Push tags to remote repo."
   []
+  (info "Pushing tags...\n")
   (dosh "git" "push" "--tags"))
 
 (defn changelog-for
@@ -50,11 +52,19 @@
 (defn create-release
   [version description]
   (let [[user repo] (current-github-repo)]
-    (gh/api-call :post "repos/%s/%s/releases" [user repo]
-                 {:oauth-token GITHUB_TOKEN
-                  :tag_name    +version+
-                  :name        +version+
-                  :body        description})))
+    (info "Creating release for %s...\n" version)
+    (let [result         (-> (gh/api-call :post "repos/%s/%s/releases"
+                                          [user repo]
+                                          {:oauth-token GITHUB_TOKEN
+                                           :tag_name    +version+
+                                           :name        +version+
+                                           :body        description}))]
+      (if (:id result)
+        ;; Success! return the most relevant keys, for the sake of brevity.
+        (select-keys result [:id :name :tag_name :body :html_url
+                             :published_at])
+        ;; Something went wrong; return the whole result.
+        result))))
 
 (deftask release
   "* Creates a new version tag and pushes it to the remote.
@@ -66,5 +76,5 @@
   (create-tag +version+ (format "version %s" +version+))
   (push-tags)
   (let [changes (changelog-for +version+)]
-    (create-release +version+ changes)))
+    (clojure.pprint/pprint (create-release +version+ changes))))
 
