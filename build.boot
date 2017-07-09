@@ -12,6 +12,7 @@
          '[boot.util          :refer (dosh)]
          '[clojure.java.shell :as    sh]
          '[clojure.set        :as    set]
+         '[clojure.string     :as    str]
          '[tentacles.core     :as    gh])
 
 (env/def GITHUB_TOKEN :required)
@@ -34,13 +35,26 @@
   [version]
   "TODO: parse changes from CHANGELOG.md")
 
+(defn current-remote
+  []
+  (-> (sh/sh "git" "remote") :out str/trim-newline))
+
+(defn current-github-repo
+  "Returns a tuple of the username and repo name of the current repo."
+  []
+  (->> (sh/sh "git" "remote" "get-url" "--push" (current-remote))
+       :out
+       (re-find #"github.com[:/](.*)/(.*).git")
+       rest))
+
 (defn create-release
   [version description]
-  (gh/api-call :post "repos/%s/%s/releases" [todo todo]
-               {:oauth-token GITHUB_TOKEN
-                :tag_name    +version+
-                :name        +version+
-                :body        description}))
+  (let [[user repo] (current-github-repo)]
+    (gh/api-call :post "repos/%s/%s/releases" [user repo]
+                 {:oauth-token GITHUB_TOKEN
+                  :tag_name    +version+
+                  :name        +version+
+                  :body        description})))
 
 (deftask release
   "* Creates a new version tag and pushes it to the remote.
