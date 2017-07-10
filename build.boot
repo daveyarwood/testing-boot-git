@@ -7,10 +7,10 @@
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop     "1.7.25"]])
 
-(def ^:const +version+ "0.0.16")
+(def ^:const +version+ "0.0.18")
 
 (require '[adzerk.env         :as    env]
-         '[boot.util          :refer (dosh info)]
+         '[boot.util          :refer (dosh info fail)]
          '[clojure.java.shell :as    sh]
          '[clojure.pprint     :refer (pprint)]
          '[clojure.set        :as    set]
@@ -73,12 +73,12 @@
   [version description]
   (let [[user repo] (current-github-repo)]
     (info "Creating release for %s...\n" version)
-    (let [result (-> (gh/api-call :post "repos/%s/%s/releases"
+    (let [result (gh/api-call :post "repos/%s/%s/releases"
                                   [user repo]
                                   {:oauth-token GITHUB_TOKEN
                                    :tag_name    +version+
                                    :name        +version+
-                                   :body        description}))]
+                                   :body        description})]
       (if (:id result)
         ;; Success! return the most relevant keys, for the sake of brevity.
         (select-keys result [:id :name :tag_name :body :html_url
@@ -96,5 +96,16 @@
     (assert changes (format "Missing changelog for version %s." +version+))
     (create-tag +version+ (format "version %s" +version+))
     (push-tags)
-    (pprint (create-release +version+ changes))))
+    (let [{:keys [id html_url body] :as response}
+          (create-release +version+ changes)]
+      (if id ; if JSON result contains an "id" field, then it was successful
+        (do
+          (info "Release published: %s\n" html_url)
+          (println)
+          (println "Release description:")
+          (println)
+          (println body))
+        (do
+          (fail "There was a problem. Here is the GitHub API response:\n")
+          (pprint response))))))
 
