@@ -7,7 +7,7 @@
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop     "1.7.25"]])
 
-(def ^:const +version+ "0.0.19")
+(def ^:const +version+ "0.0.20")
 
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info fail)]
@@ -15,7 +15,7 @@
          '[clojure.pprint     :refer (pprint)]
          '[clojure.set        :as    set]
          '[clojure.string     :as    str]
-         '[tentacles.core     :as    gh]
+         '[tentacles.repos    :as    repos]
          '[instaparse.core    :as    insta])
 
 (env/def GITHUB_TOKEN :required)
@@ -73,12 +73,10 @@
   [version description]
   (let [[user repo] (current-github-repo)]
     (info "Creating release for %s...\n" version)
-    (gh/api-call :post "repos/%s/%s/releases"
-                 [user repo]
-                 {:oauth-token GITHUB_TOKEN
-                  :tag_name    +version+
-                  :name        +version+
-                  :body        description})))
+    (repos/create-release user repo {:oauth-token GITHUB_TOKEN
+                                     :tag_name    +version+
+                                     :name        +version+
+                                     :body        description})))
 
 (deftask release
   "* Creates a new version tag and pushes it to the remote.
