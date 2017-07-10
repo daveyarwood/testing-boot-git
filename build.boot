@@ -7,7 +7,7 @@
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop     "1.7.25"]])
 
-(def ^:const +version+ "0.0.18")
+(def ^:const +version+ "0.0.19")
 
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info fail)]
@@ -73,24 +73,18 @@
   [version description]
   (let [[user repo] (current-github-repo)]
     (info "Creating release for %s...\n" version)
-    (let [result (gh/api-call :post "repos/%s/%s/releases"
-                                  [user repo]
-                                  {:oauth-token GITHUB_TOKEN
-                                   :tag_name    +version+
-                                   :name        +version+
-                                   :body        description})]
-      (if (:id result)
-        ;; Success! return the most relevant keys, for the sake of brevity.
-        (select-keys result [:id :name :tag_name :body :html_url
-                             :published_at])
-        ;; Something went wrong; return the whole result.
-        result))))
+    (gh/api-call :post "repos/%s/%s/releases"
+                 [user repo]
+                 {:oauth-token GITHUB_TOKEN
+                  :tag_name    +version+
+                  :name        +version+
+                  :body        description})))
 
 (deftask release
   "* Creates a new version tag and pushes it to the remote.
    * Creates a new release via the GitHub API.
      * The description of the release is parsed from CHANGELOG.md."
-  []
+  [a assets ASSETS #{str} "Assets to upload and include with this release."]
   (assert (repo-clean?) "You have uncommitted changes. Aborting.")
   (let [changes (changelog-for +version+)]
     (assert changes (format "Missing changelog for version %s." +version+))
