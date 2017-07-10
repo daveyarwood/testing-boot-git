@@ -1,19 +1,21 @@
 (set-env!
-  :dependencies '[[org.clojure/clojure "1.8.0"]
-                  [adzerk/env "0.4.0"]
+  :dependencies '[[org.clojure/clojure     "1.8.0"]
+                  [adzerk/env              "0.4.0"]
                   [irresponsible/tentacles "0.6.1"]
+                  [instaparse              "1.4.7"]
 
                   ; silence slf4j logging dammit
-                  [org.slf4j/slf4j-nop "1.7.25"]])
+                  [org.slf4j/slf4j-nop     "1.7.25"]])
 
-(def ^:const +version+ "0.0.13")
+(def ^:const +version+ "0.0.14")
 
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info)]
          '[clojure.java.shell :as    sh]
          '[clojure.set        :as    set]
          '[clojure.string     :as    str]
-         '[tentacles.core     :as    gh])
+         '[tentacles.core     :as    gh]
+         '[instaparse.core    :as    insta])
 
 (env/def GITHUB_TOKEN :required)
 
@@ -35,7 +37,24 @@
 
 (defn changelog-for
   [version]
-  "TODO: parse changes from CHANGELOG.md")
+  (as-> (slurp "CHANGELOG.md") x
+    ((insta/parser
+       "changelog      = <preamble?> version+
+        preamble       = #'(#+\\s*)?CHANGELOG\\n+'
+        version        = version-number changes
+        version-number = <#'#+\\s*'> #'\\d[^\\s]*'
+        changes        = (!version-number #'(.|\\n)')*")
+     x)
+    (insta/transform
+      {:changes        str
+       :version-number identity
+       :version        list
+       :changelog      #(reduce (fn [m [k v]]
+                                  (assoc m k (str "# " k v)))
+                                {}
+                                %&)}
+      x)
+    (get x version)))
 
 (defn current-remote
   []
