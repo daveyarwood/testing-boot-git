@@ -73,12 +73,12 @@
   [version description]
   (let [[user repo] (current-github-repo)]
     (info "Creating release for %s...\n" version)
-    (let [result         (-> (gh/api-call :post "repos/%s/%s/releases"
-                                          [user repo]
-                                          {:oauth-token GITHUB_TOKEN
-                                           :tag_name    +version+
-                                           :name        +version+
-                                           :body        description}))]
+    (let [result (-> (gh/api-call :post "repos/%s/%s/releases"
+                                  [user repo]
+                                  {:oauth-token GITHUB_TOKEN
+                                   :tag_name    +version+
+                                   :name        +version+
+                                   :body        description}))]
       (if (:id result)
         ;; Success! return the most relevant keys, for the sake of brevity.
         (select-keys result [:id :name :tag_name :body :html_url
