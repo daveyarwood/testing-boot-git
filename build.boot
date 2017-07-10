@@ -12,6 +12,7 @@
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info)]
          '[clojure.java.shell :as    sh]
+         '[clojure.pprint     :refer (pprint)]
          '[clojure.set        :as    set]
          '[clojure.string     :as    str]
          '[tentacles.core     :as    gh]
@@ -91,9 +92,9 @@
      * The description of the release is parsed from CHANGELOG.md."
   []
   (assert (repo-clean?) "You have uncommitted changes. Aborting.")
-
-  (create-tag +version+ (format "version %s" +version+))
-  (push-tags)
   (let [changes (changelog-for +version+)]
-    (clojure.pprint/pprint (create-release +version+ changes))))
+    (assert changes (format "Missing changelog for version %s." +version+))
+    (create-tag +version+ (format "version %s" +version+))
+    (push-tags)
+    (pprint (create-release +version+ changes))))
 
