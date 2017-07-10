@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.0.16 (2017-07-09)
+
+woop
+woop
+woop
+woop
+woop
+woop
+woop
+
 ## 0.0.15 (2017-07-09)
 
 woop
