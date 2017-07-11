@@ -7,7 +7,7 @@
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop     "1.7.25"]])
 
-(def ^:const +version+ "0.0.20")
+(def ^:const +version+ "0.0.21")
 
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info fail)]
@@ -88,7 +88,7 @@
     (assert changes (format "Missing changelog for version %s." +version+))
     (create-tag +version+ (format "version %s" +version+))
     (push-tags)
-    (let [{:keys [id html_url body] :as response}
+    (let [{:keys [id html_url upload_url body] :as response}
           (create-release +version+ changes)]
       (if id ; if JSON result contains an "id" field, then it was successful
         (do
@@ -96,7 +96,8 @@
           (println)
           (println "Release description:")
           (println)
-          (println body))
+          (println body)
+          (prn :upload_url upload_url))
         (do
           (fail "There was a problem. Here is the GitHub API response:\n")
           (pprint response))))))
