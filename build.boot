@@ -133,7 +133,7 @@
           (println body)
           (doseq [file files]
             (let [{:keys [id browser_download_url] :as response}
-                  (upload-asset upload_url asset)]
+                  (upload-asset upload_url file)]
               (if id
                 (info "Asset uploaded: %s\n" (.getName file))
                 (do
