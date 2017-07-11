@@ -8,7 +8,7 @@
                   ; silence slf4j logging dammit
                   [org.slf4j/slf4j-nop     "1.7.25"]])
 
-(def ^:const +version+ "0.0.22")
+(def ^:const +version+ "0.0.23")
 
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info fail)]
@@ -135,7 +135,7 @@
             (let [{:keys [id browser_download_url] :as response}
                   (upload-asset upload_url file)]
               (if id
-                (info "Asset uploaded: %s\n" (.getName file))
+                (info "Asset uploaded: %s\n" browser_download_url)
                 (do
                   (fail "Failed to upload %s. API response:\n")
                   (pprint response))))))
