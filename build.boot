@@ -12,6 +12,7 @@
 
 (require '[adzerk.env         :as    env]
          '[boot.util          :refer (dosh info fail)]
+         '[clojure.java.io    :as    io]
          '[clojure.java.shell :as    sh]
          '[clojure.pprint     :refer (pprint)]
          '[clojure.set        :as    set]
