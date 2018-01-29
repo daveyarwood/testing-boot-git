@@ -3,7 +3,7 @@
                   [adzerk/env          "0.4.0"]
                   [io.djy/boot-github  "0.1.3"]])
 
-(def ^:const +version+ "0.0.24")
+(def ^:const +version+ "0.0.26")
 
 (require '[adzerk.env         :as    env]
          '[io.djy.boot-github :refer (push-version-tag create-release)])
@@ -16,5 +16,6 @@
     (push-version-tag :version +version+)
     (create-release :version      +version+
                     :changelog    true
-                    :github-token GITHUB_TOKEN)))
+                    :github-token GITHUB_TOKEN
+                    :assets       #{"lol-this-file-doesnt-exist.txt"})))
 
